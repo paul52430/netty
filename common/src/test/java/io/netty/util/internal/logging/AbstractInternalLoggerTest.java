@@ -15,18 +15,16 @@
  */
 package io.netty.util.internal.logging;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * We only need to test methods defined by {@link InternaLogger}.
+ * We only need to test methods defined by {@link InternalLogger}.
  */
 public abstract class AbstractInternalLoggerTest<T> {
     protected String loggerName = "foo";
