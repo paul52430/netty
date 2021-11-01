@@ -21,23 +21,13 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.codec.http.DefaultFullHttpRequest;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpHeaderNames;
-import io.netty.handler.codec.http.HttpHeaderValues;
-import io.netty.handler.codec.http.HttpScheme;
+import io.netty.handler.codec.http.*;
 import io.netty.handler.codec.http2.Http2SecurityUtil;
 import io.netty.handler.codec.http2.HttpConversionUtil;
-import io.netty.handler.ssl.ApplicationProtocolConfig;
+import io.netty.handler.ssl.*;
 import io.netty.handler.ssl.ApplicationProtocolConfig.Protocol;
 import io.netty.handler.ssl.ApplicationProtocolConfig.SelectedListenerFailureBehavior;
 import io.netty.handler.ssl.ApplicationProtocolConfig.SelectorFailureBehavior;
-import io.netty.handler.ssl.ApplicationProtocolNames;
-import io.netty.handler.ssl.OpenSsl;
-import io.netty.handler.ssl.SslContext;
-import io.netty.handler.ssl.SslContextBuilder;
-import io.netty.handler.ssl.SslProvider;
-import io.netty.handler.ssl.SupportedCipherSuiteFilter;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.netty.util.AsciiString;
 import io.netty.util.CharsetUtil;
@@ -91,19 +81,26 @@ public final class Http2Client {
             sslCtx = null;
         }
 
+        //初始化用于连接及I/O工作的"线程池"；
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         Http2ClientInitializer initializer = new Http2ClientInitializer(sslCtx, Integer.MAX_VALUE);
 
         try {
             // Configure the client.
+            //初始化Bootstrap实例， 此实例是netty客户端应用开发的入口
             Bootstrap b = new Bootstrap();
+            //通过Bootstrap的group方法，设置初始化的"线程池"
             b.group(workerGroup);
+            //指定通道channel的类型，由于是客户端，故而是NioSocketChannel；
             b.channel(NioSocketChannel.class);
+            //设置SocketChannel的选项
             b.option(ChannelOption.SO_KEEPALIVE, true);
             b.remoteAddress(HOST, PORT);
+            //设置SocketChannel的处理器， 其内部是实际业务开发的"主战场"
             b.handler(initializer);
 
             // Start the client.
+            //连接指定的服务地址；
             Channel channel = b.connect().syncUninterruptibly().channel();
             System.out.println("Connected to [" + HOST + ':' + PORT + ']');
 

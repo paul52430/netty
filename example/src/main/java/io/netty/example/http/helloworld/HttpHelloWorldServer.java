@@ -47,16 +47,23 @@ public final class HttpHelloWorldServer {
         }
 
         // Configure the server.
+        //初始化用于Acceptor的主"线程池"以及用于I/O工作的从"线程池"；
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         try {
+            //初始化ServerBootstrap实例
             ServerBootstrap b = new ServerBootstrap();
+            //配置ServerSocketChannel的选项
             b.option(ChannelOption.SO_BACKLOG, 1024);
+            //通过ServerBootstrap的group方法，设置上方初始化的主从"线程池"；
             b.group(bossGroup, workerGroup)
+             //指定通道channel的类型，由于是服务端，故而是NioServerSocketChannel；
              .channel(NioServerSocketChannel.class)
+            //设置ServerSocketChannel的处理器
              .handler(new LoggingHandler(LogLevel.INFO))
+            //置子通道也就是SocketChannel的处理器， 其内部是实际业务开发的"主战场"
              .childHandler(new HttpHelloWorldServerInitializer(sslCtx));
-
+            //绑定并侦听某个端口
             Channel ch = b.bind(PORT).sync().channel();
 
             System.err.println("Open your web browser and navigate to " +
