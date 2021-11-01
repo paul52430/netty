@@ -1140,6 +1140,7 @@
             </goals>
             <phase>validate</phase>
             <configuration>
+              <skip>true</skip>
               <consoleOutput>true</consoleOutput>
               <logViolationsToConsole>true</logViolationsToConsole>
               <failsOnError>true</failsOnError>
