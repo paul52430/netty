@@ -18,14 +18,10 @@ package io.netty.channel;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
+ * 数据入站，指的是数据从底层的Java NIO channel到Netty的Channel。数据出站，指的是通过Netty的Channel来操作底层的 Java NIO chanel。
  * Handles an I/O event or intercepts an I/O operation, and forwards it to its next handler in
  * its {@link ChannelPipeline}.
  *
@@ -136,6 +132,10 @@ import java.lang.annotation.Target;
  *     ...
  * }
  * </pre>
+ * 现在处理程序的状态已附加到{@link ChannelHandlerContext}，您可以添加
+ * 相同的处理程序实例到不同的管道: 一个Channel，仅仅一个ChannelPipeline
+ * 该pipeline在Channel被创建的时候创建。ChannelPipeline相当于是ChannelHandler的容器，
+ * 它包含了一个ChannelHander形成的列表，且所有ChannelHandler都会注册到ChannelPipeline中。
  * Now that the state of the handler is attached to the {@link ChannelHandlerContext}, you can add the
  * same handler instance to different pipelines:
  * <pre>
