@@ -30,6 +30,7 @@ import java.util.NoSuchElementException;
 
 
 /**
+ * pipeline在Channel被创建的时候创建。ChannelPipeline相当于是ChannelHandler的容器，它包含了一个ChannelHander形成的列表，且所有ChannelHandler都会注册到ChannelPipeline中。
  * A list of {@link ChannelHandler}s which handles or intercepts inbound events and outbound operations of a
  * {@link Channel}.  {@link ChannelPipeline} implements an advanced form of the
  * <a href="https://www.oracle.com/technetwork/java/interceptingfilter-142169.html">Intercepting Filter</a> pattern
@@ -218,6 +219,9 @@ import java.util.NoSuchElementException;
  * A {@link ChannelHandler} can be added or removed at any time because a {@link ChannelPipeline} is thread safe.
  * For example, you can insert an encryption handler when sensitive information is about to be exchanged, and remove it
  * after the exchange.
+ * ChannelPipeline 中维护的，是一个由 ChannelHandlerContext 组成的双向链表。
+ * 这个链表的头是 HeadContext, 链表的尾是 TailContext。而无状态的Handler，作为Context的成员，关联在ChannelHandlerContext 中。
+ * 在对应关系上，每个 ChannelHandlerContext 中仅仅关联着一个 ChannelHandler
  */
 public interface ChannelPipeline
         extends ChannelInboundInvoker, ChannelOutboundInvoker, Iterable<Entry<String, ChannelHandler>> {
