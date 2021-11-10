@@ -39,7 +39,11 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 public class DefaultChannelPipeline implements ChannelPipeline {
 
     static final InternalLogger logger = InternalLoggerFactory.getInstance(DefaultChannelPipeline.class);
-
+    /**
+     * 在Pipeline中头尾，分别各有一个特别的HandlerContext——简称Head和Tail。
+     * Head的类型是HeadContext。Tail的类型是TailContext。
+     * 这两种类型，和DefaultChannelHandlerContext类型，都是AbstractChannelHandlerContext的子类
+     */
     private static final String HEAD_NAME = generateName0(HeadContext.class);
     private static final String TAIL_NAME = generateName0(TailContext.class);
 
@@ -86,7 +90,9 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         this.channel = ObjectUtil.checkNotNull(channel, "channel");
         succeededFuture = new SucceededChannelFuture(channel, null);
         voidPromise =  new VoidChannelPromise(channel, true);
-
+        /**
+         * 在Pipeline实例创建的同时，Netty为Pipeline创建了一个Head和一个Tail，并且建立好了链接关系
+         */
         tail = new TailContext(this);
         head = new HeadContext(this);
 
@@ -193,10 +199,11 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     public final ChannelPipeline addLast(EventExecutorGroup group, String name, ChannelHandler handler) {
         final AbstractChannelHandlerContext newCtx;
         synchronized (this) {
+            //检查重复
             checkMultiplicity(handler);
-
+            //创建上下文
             newCtx = newContext(group, filterName(name, handler), handler);
-
+            //加入双向链表
             addLast0(newCtx);
 
             // If the registered is false it means that the channel was not registered on an eventLoop yet.
@@ -218,6 +225,9 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         return this;
     }
 
+    /**
+     * Context加入到双向列表的尾部Tail前面
+     */
     private void addLast0(AbstractChannelHandlerContext newCtx) {
         AbstractChannelHandlerContext prev = tail.prev;
         newCtx.prev = prev;
@@ -586,6 +596,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         oldCtx.next = newCtx;
     }
 
+    //非共享类型的Handler，只能被添加一次。如果当前要添加的Handler是非共享的，并且已经添加过，那就抛出异常，否则，标识该handler已经添加。
     private static void checkMultiplicity(ChannelHandler handler) {
         if (handler instanceof ChannelHandlerAdapter) {
             ChannelHandlerAdapter h = (ChannelHandlerAdapter) handler;
@@ -1237,7 +1248,13 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         }
     }
 
-    // A special catch-all handler that handles both bytes and messages.
+    // A special catch-all handler that handles both bytes and messages.同时处理字节和消息的特殊的全部捕获处理程序。
+
+    /**
+     * Tail上下文包裹器的主要作用： 主要是作为出站处理的起点。
+     * 当所有的入站处理器，都处理完成后，开始出站流程。
+     * 需要出站的数据包，首先从Tail开始，被所有的出站处理器上下文Context中的Hander逐个进行处理。然后将处理结果，写入Channel中
+     */
     final class TailContext extends AbstractChannelHandlerContext implements ChannelInboundHandler {
 
         TailContext(DefaultChannelPipeline pipeline) {
@@ -1298,6 +1315,10 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         }
     }
 
+    /**
+     * Head上下文包裹器的主要作用： 主要是作为入站处理的起点。
+     * 数据从Channel读入之后，一个入站数据包从Channel的事件发送出来，首先从Head开始，被后面的所有的入站处理器，逐个进行入站处理。
+     */
     final class HeadContext extends AbstractChannelHandlerContext
             implements ChannelOutboundHandler, ChannelInboundHandler {
 
